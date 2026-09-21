@@ -1,1 +1,7 @@
-export default function App() { return <div>App</div> }
+import Trades from "./pages/Trades";
+
+function App() {
+  return <Trades />;
+}
+
+export default App;
