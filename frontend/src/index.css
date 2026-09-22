@@ -229,3 +229,47 @@ input {
     border-bottom: 1px solid #e1e3e6;
   }
 }
+
+.simulator-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  background: #f7f7f8;
+  border-bottom: 1px solid #e1e3e6;
+}
+
+.simulator-title {
+  margin-top: 5px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.scenario-select {
+  min-width: 150px;
+  padding: 9px 12px;
+  border: 1px solid #bfc3c8;
+  background: white;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.leg-action {
+  margin-top: 18px;
+}
+
+.external-result {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 14px;
+  padding: 12px;
+  background: #f5f5f5;
+  border-left: 3px solid #171717;
+  font-size: 12px;
+}
+
+.external-result strong {
+  font-size: 11px;
+  letter-spacing: 0.7px;
+}

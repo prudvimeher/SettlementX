@@ -93,3 +93,74 @@ export async function createSettlement(tradeId) {
 
   return data;
 }
+
+export async function simulateCashTransfer({
+  settlementId,
+  amount,
+  currency,
+  scenario,
+}) {
+  const response = await fetch(
+    `${API_BASE_URL}/external/cash-transfer`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        settlement_id: settlementId,
+        amount: String(amount),
+        currency,
+        scenario,
+      }),
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data?.detail?.message ||
+        data?.detail ||
+        "Cash transfer failed"
+    );
+  }
+
+  return data;
+}
+
+
+export async function simulateAssetTransfer({
+  settlementId,
+  quantity,
+  instrument,
+  scenario,
+}) {
+  const response = await fetch(
+    `${API_BASE_URL}/external/asset-transfer`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        settlement_id: settlementId,
+        quantity: String(quantity),
+        instrument,
+        scenario,
+      }),
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data?.detail?.message ||
+        data?.detail ||
+        "Asset transfer failed"
+    );
+  }
+
+  return data;
+}

@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.db.database import Base, engine
 from app.db import models
 from app.routes.trades import router as trades_router
-
+from app.routes.external import router as external_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -21,7 +21,7 @@ app.add_middleware(
 
 
 app.include_router(trades_router)
-
+app.include_router(external_router)
 
 @app.get("/api/v1/health")
 def health():
