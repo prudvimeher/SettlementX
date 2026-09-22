@@ -3,28 +3,24 @@ import TradeForm from "../components/TradeForm";
 import {
   validateTrade,
   confirmTrade,
+  createSettlement,
 } from "../services/tradeService";
 
 const API_BASE_URL = "http://127.0.0.1:8000/api/v1";
 
 function Trades() {
   const [trades, setTrades] = useState([]);
+  const [settlements, setSettlements] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const fetchTrades = async () => {
     try {
-      setError("");
-
       const response = await fetch(`${API_BASE_URL}/trades`);
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          data?.detail?.message ||
-            data?.detail ||
-            "Failed to load trades"
-        );
+        throw new Error("Failed to load trades");
       }
 
       setTrades(data);
@@ -42,9 +38,7 @@ function Trades() {
   const handleValidate = async (tradeId) => {
     try {
       setError("");
-
       await validateTrade(tradeId);
-
       await fetchTrades();
     } catch (err) {
       setError(err.message);
@@ -54,106 +48,111 @@ function Trades() {
   const handleConfirm = async (tradeId) => {
     try {
       setError("");
-
       await confirmTrade(tradeId);
-
       await fetchTrades();
     } catch (err) {
       setError(err.message);
     }
   };
 
+  const handleCreateSettlement = async (tradeId) => {
+    try {
+      setError("");
+
+      const data = await createSettlement(tradeId);
+
+      setSettlements((current) => ({
+        ...current,
+        [tradeId]: data,
+      }));
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   return (
-    <div>
-      <TradeForm onTradeCreated={fetchTrades} />
+    <div className="bnpp-page">
+      <div className="bnpp-header">
+        <div>
+          <div className="bnpp-eyebrow">SETTLEMENTX</div>
+          <h1>Trade Operations</h1>
+          <p>Trade capture, confirmation and settlement instruction</p>
+        </div>
+      </div>
+
+      <TradeForm />
 
       {error && (
-        <div className="mx-auto w-full max-w-6xl px-4 pb-4">
-          <div className="border border-[#d64545] bg-[#fff1f1] px-4 py-3 text-sm text-[#d64545]">
-            {error}
-          </div>
+        <div className="bnpp-error">
+          {error}
         </div>
       )}
 
-      <div className="mx-auto w-full max-w-6xl px-4 pb-8">
-        <div className="border border-[#dce5e0] bg-white">
-          <div className="border-b border-[#dce5e0] bg-[#f4f7f5] px-6 py-4">
-            <h2 className="text-sm font-semibold text-[#17221d]">
-              Trades
-            </h2>
+      {loading ? (
+        <div className="bnpp-panel">Loading trades...</div>
+      ) : (
+        <div className="bnpp-panel">
+          <div className="bnpp-panel-header">
+            <h2>Trade Book</h2>
+            <span>{trades.length} trades</span>
           </div>
 
-          {loading ? (
-            <div className="p-6 text-sm text-[#5f6b66]">
-              Loading trades...
-            </div>
-          ) : trades.length === 0 ? (
-            <div className="p-6 text-sm text-[#5f6b66]">
-              No trades found.
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="border-b border-[#dce5e0] bg-[#f4f7f5]">
-                  <tr>
-                    <th className="px-4 py-3">Trade ID</th>
-                    <th className="px-4 py-3">Buyer</th>
-                    <th className="px-4 py-3">Seller</th>
-                    <th className="px-4 py-3">Instrument</th>
-                    <th className="px-4 py-3">Quantity</th>
-                    <th className="px-4 py-3">Price</th>
-                    <th className="px-4 py-3">Currency</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Action</th>
-                  </tr>
-                </thead>
+          <div className="bnpp-table-wrapper">
+            <table className="bnpp-table">
+              <thead>
+                <tr>
+                  <th>Trade ID</th>
+                  <th>Buyer</th>
+                  <th>Seller</th>
+                  <th>Instrument</th>
+                  <th>Qty</th>
+                  <th>Price</th>
+                  <th>Value</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
 
-                <tbody>
-                  {trades.map((trade) => (
-                    <tr
-                      key={trade.trade_id}
-                      className="border-b border-[#dce5e0]"
-                    >
-                      <td className="px-4 py-3 font-medium">
+              <tbody>
+                {trades.map((trade) => {
+                  const settlement = settlements[trade.trade_id];
+
+                  return (
+                    <tr key={trade.trade_id}>
+                      <td className="bnpp-mono">
                         {trade.trade_id}
                       </td>
 
-                      <td className="px-4 py-3">
-                        {trade.buyer}
+                      <td>{trade.buyer}</td>
+                      <td>{trade.seller}</td>
+                      <td>{trade.instrument}</td>
+                      <td>{trade.quantity}</td>
+                      <td>
+                        {trade.currency} {trade.price}
+                      </td>
+                      <td>
+                        {trade.currency}{" "}
+                        {(
+                          Number(trade.quantity) *
+                          Number(trade.price)
+                        ).toLocaleString("en-IN")}
                       </td>
 
-                      <td className="px-4 py-3">
-                        {trade.seller}
+                      <td>
+                        <span
+                          className={`bnpp-status status-${trade.status.toLowerCase()}`}
+                        >
+                          {trade.status}
+                        </span>
                       </td>
 
-                      <td className="px-4 py-3">
-                        {trade.instrument}
-                      </td>
-
-                      <td className="px-4 py-3">
-                        {trade.quantity}
-                      </td>
-
-                      <td className="px-4 py-3">
-                        {trade.price}
-                      </td>
-
-                      <td className="px-4 py-3">
-                        {trade.currency}
-                      </td>
-
-                      <td className="px-4 py-3 font-semibold">
-                        {trade.status}
-                      </td>
-
-                      <td className="px-4 py-3">
+                      <td>
                         {trade.status === "CAPTURED" && (
                           <button
-                            type="button"
+                            className="bnpp-button"
                             onClick={() =>
                               handleValidate(trade.trade_id)
                             }
-                            className="bg-[#00915a] px-4 py-2 text-xs font-semibold text-white hover:bg-[#17221d]"
                           >
                             Validate
                           </button>
@@ -161,33 +160,103 @@ function Trades() {
 
                         {trade.status === "VALIDATED" && (
                           <button
-                            onClick={() => handleConfirm(trade.trade_id)}
-                            className="font-semibold text-[#00915a]"
+                            className="bnpp-button"
+                            onClick={() =>
+                              handleConfirm(trade.trade_id)
+                            }
                           >
                             Confirm Trade
                           </button>
                         )}
 
-                        {trade.status === "CONFIRMED" && (
-                          <span className="font-semibold text-[#00915a]">
-                          Confirmed
-                          </span>
-                        )}
+                        {trade.status === "CONFIRMED" &&
+                          !settlement && (
+                            <button
+                              className="bnpp-button bnpp-button-primary"
+                              onClick={() =>
+                                handleCreateSettlement(
+                                  trade.trade_id
+                                )
+                              }
+                            >
+                              Create Settlement
+                            </button>
+                          )}
 
-                        {trade.status === "REJECTED" && (
-                          <span className="font-semibold text-[#d64545]">
-                            Rejected
-                          </span>
-                        )}
+                        {trade.status === "CONFIRMED" &&
+                          settlement && (
+                            <span className="bnpp-complete">
+                              Settlement Created
+                            </span>
+                          )}
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
+
+      {Object.values(settlements).map((settlement) => (
+        <div
+          className="bnpp-panel settlement-panel"
+          key={settlement.settlement_id}
+        >
+          <div className="bnpp-panel-header">
+            <div>
+              <div className="bnpp-eyebrow">
+                SETTLEMENT INSTRUCTION
+              </div>
+
+              <h2>{settlement.settlement_id}</h2>
+            </div>
+
+            <span className="bnpp-status status-instructed">
+              {settlement.status}
+            </span>
+          </div>
+
+          <div className="settlement-grid">
+            <div className="settlement-leg">
+              <div className="leg-label">CASH</div>
+
+              <div className="leg-value">
+                {settlement.currency}{" "}
+                {Number(
+                  settlement.cash_amount
+                ).toLocaleString("en-IN")}
+              </div>
+
+              <div className="leg-route">
+                Buyer → Seller
+              </div>
+
+              <span className="bnpp-status status-pending">
+                {settlement.cash_status}
+              </span>
+            </div>
+
+            <div className="settlement-leg">
+              <div className="leg-label">ASSET</div>
+
+              <div className="leg-value">
+                {settlement.asset_quantity}{" "}
+                {settlement.instrument}
+              </div>
+
+              <div className="leg-route">
+                Seller → Buyer
+              </div>
+
+              <span className="bnpp-status status-pending">
+                {settlement.asset_status}
+              </span>
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

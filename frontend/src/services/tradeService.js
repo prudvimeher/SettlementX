@@ -69,3 +69,27 @@ export async function confirmTrade(tradeId) {
 
   return data;
 }
+
+export async function createSettlement(tradeId) {
+  const response = await fetch(
+    `${API_BASE_URL}/trades/${tradeId}/settlement`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data?.detail?.message ||
+        data?.detail ||
+        "Failed to create settlement"
+    );
+  }
+
+  return data;
+}
